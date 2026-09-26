@@ -24,6 +24,8 @@ it('allows pamphlet formats in both orientations without asking for blanks',()=>
 });
 it('keeps A4-only preflight for books and rejects unsupported/mixed pamphlet pages',()=>{
  expect(checkPreflight({...facts,pageCount:3},[{width:396,height:612}]).problems).not.toEqual([]);
- expect(checkPreflight({...facts,pageCount:1},[{width:100,height:100}]).problems[0]).toContain('pamphlet');
+ expect(checkPreflight({...facts,pageCount:1},[{width:100,height:100}]).problems).toEqual([]);
+ expect(checkPreflight({...facts,pageCount:2},[{width:100,height:100}]).problems[0]).toContain('pamphlet');
+ expect(checkPreflight({...facts,pageCount:1},[{width:0,height:100}]).problems).not.toEqual([]);
  expect(checkPreflight({...facts,pageCount:2,uniformPageSize:false},[{width:396,height:612}]).problems).toContain('Mixed page sizes are not supported.');
 });

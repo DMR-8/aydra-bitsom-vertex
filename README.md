@@ -15,7 +15,7 @@ yarn dev
 Open http://localhost:3000. In `.env.local`, set:
 
 - `OPENAI_API_KEY`: your server-side OpenAI API key.
-- `OPENAI_MODEL`: a model available to your account that supports Responses API Structured Outputs. No model is hardcoded.
+- `OPENAI_MODEL`: a model available to your account that supports image input and Responses API Structured Outputs. No model is hardcoded.
 
 Restart the server after changing environment variables. Without these variables, the assistant returns an explanatory 503 and the choice buttons still complete the job. Free text is not applied when the assistant is unavailable; use the buttons. To change an already completed job offline, use **Start over** (the file is retained).
 
@@ -101,3 +101,12 @@ The eight layouts follow the user-supplied `Pamphlet Setting.pdf`. All use a 530
 The brief overlaps the half-size ranges at 4,001–4,099 and omits exactly 2,100 for full-size. The above boundaries are provisional and are shown on the confirmation card. Reference page 4 is treated as half-size duplex based on its measured page boxes, despite being described as 8.5 × 11 in the text. These three decisions remain open for shop confirmation.
 
 The confirmation shows net press sheets and impressions (excluding spoilage), then requires a Generate click. A double-sided sheet produces the stated finished quantity only after both sides have been printed and cut. Layouts and orientations are deterministic, with rectangle and head-direction tests pinned to the reference. An eight-page rendered proof is available locally at `artifacts/pamphlet-layout-proofs.pdf` (ignored by Git).
+
+
+## One-page labels / stickers
+
+One-page uploads require explicit operator confirmation of Label / Sticker or Pamphlet before planning. The server-only `/api/classify` route suggests a type using a compressed first-page JPEG plus filename and dimensions through a vision-capable `OPENAI_MODEL`, with strict structured output. The original PDF stays local, but the artwork preview is sent to OpenAI (`store: false`); ambiguous inputs and API failures leave the manual buttons available. Suggestions never confirm a type or trigger generation. Two-page documents retain the front/back pamphlet workflow; books are unchanged.
+
+Stickers repeat the entire source page at actual size onto one 13 × 19 in (330.2 × 482.6 mm) sheet. Fixed settings: 8 mm edge clearance, 15 × 15 mm empty corner squares, 2 mm horizontal/vertical gaps, centred artwork, no quantity question, no plate marks or gripper stripe. `lib/imposition/sticker.ts` compares uniform orientations and mixed row/column bands, checking clearance after centring. This is a bounded shelf search, not a proof of optimal arbitrary packing. Pages below 15 mm² are rejected to bound browser work. Generation remains an explicit click and runs locally. Pamphlet size checks apply after type confirmation; custom-size one-page sticker PDFs must not be rejected by pamphlet preflight.
+
+Visual classification renders the single source page against white, preserving aspect ratio, with a maximum 1280 px side and JPEG quality 0.8 (lowered if needed). Preview data URLs are capped at 1,000,000 characters, and the classification endpoint accepts only JPEG data URLs, never remote image URLs or PDF uploads. Preview failures, ambiguous classifications, incompatible models and API outages preserve manual confirmation. Tests mock OpenAI and never send artwork to the network.

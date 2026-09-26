@@ -6,7 +6,7 @@ lot pot"). An OpenAI model turns that sentence into a job spec, asks for anythin
 missing, and the app imposes the PDF as a Center Pin Offset Book on a 4-page
 plate and hands back the imposed PDF with the fixed shop markers and gripper setup.
 
-One- and two-page PDFs use the pamphlet workflow below. PDFs with three or more pages use the offset-book workflow. Other unrelated tasks are politely declined.
+One-page PDFs require label/sticker or pamphlet confirmation. Two-page PDFs use the pamphlet workflow below. PDFs with three or more pages use the offset-book workflow. Other unrelated tasks are politely declined.
 
 ## Commands
 
@@ -76,7 +76,7 @@ Lot-Pot meanings, for the model's explanations:
   generate because the model said so.
 - **The PDF never leaves the browser.** Preflight, imposition and PDF writing all
   run client-side. Only preflight facts (file name, page count, page size,
-  uniformity, colour mode) and the chat text go to the server and to OpenAI.
+  uniformity, colour mode) and the chat text go to the server and to OpenAI. For one-page type classification, a compressed JPEG preview of the artwork also goes to OpenAI; this exception is explicitly authorized by the user and disclosed before upload.
 - The OpenAI call lives only in a server route handler. The API key never
   reaches the client bundle.
 - Use Structured Outputs (a strict JSON schema) for the model response and
@@ -157,7 +157,7 @@ The UI uses a white background with purple accents at all times. Do not follow t
 
 ## Pamphlet workflow
 
-- One source page automatically means single-sided pamphlet; two means front/back (page 1 front, page 2 back). Do not add blanks or ask for binding or Lot-Pot. Ask only for the quantity of finished copies. Keep a local numeric entry field so the job can finish without OpenAI.
+- One source page confirmed as a pamphlet means single-sided; two means front/back (page 1 front, page 2 back). Do not add blanks or ask for binding or Lot-Pot. Ask only for the quantity of finished copies. Keep a local numeric entry field so the job can finish without OpenAI.
 - Accept A5 (148 × 210 mm), half-letter (5.5 × 8.5 in), A4, or Letter (8.5 × 11 in), ±5 mm per dimension, either input orientation. Preserve actual dimensions. Mixed page sizes still block generation.
 - Use one 530 × 664 mm portrait output plate, a right gripper, 45 mm artwork clearance, the existing 15 mm stripe and Aydra Labs Gripper lettering, shop Marka assets, and 7.62 mm centre gutter. The page block is centred vertically. Two-page layouts put both faces on the same plate, used with work and tumble; never emit a separate back plate.
 - Deterministic template maps live in `lib/imposition/pamphlet.ts`; measured regression data from the user’s eight-page `Pamphlet Setting.pdf` lives in `tests/fixtures/pamphlet-reference.json`. Do not alter the original book planner.
@@ -175,3 +175,12 @@ The UI uses a white background with purple accents at all times. Do not follow t
 | 8 | A4 / Letter | High | 2 pages | 2 × 2, top page 2 at 180°, bottom page 1 upright |
 
 Only the middle row boundary has a gutter; the other tile edges touch. For landscape source artwork, normalize fronts clockwise and backs counterclockwise so front/back heads agree after work-and-tumble. The output must keep every placement within the plate. Finished pieces per fully printed sheet equal the number of positions; net sheets = ceiling(quantity / positions), and double-sided impressions = twice net sheets. These counts exclude spoilage and setup waste. Quantity changes must re-plan the confirmation card; generation still requires an explicit click. All PDF processing remains in the browser.
+
+
+## One-page labels / stickers
+
+One-page uploads require explicit operator confirmation of Label / Sticker or Pamphlet before planning. The server-only `/api/classify` route suggests a type using a compressed first-page JPEG plus filename and dimensions through a vision-capable `OPENAI_MODEL`, with strict structured output. The original PDF stays local, but the artwork preview is sent to OpenAI (`store: false`); ambiguous inputs and API failures leave the manual buttons available. Suggestions never confirm a type or trigger generation. Two-page documents retain the front/back pamphlet workflow; books are unchanged.
+
+Stickers repeat the entire source page at actual size onto one 13 × 19 in (330.2 × 482.6 mm) sheet. Fixed settings: 8 mm edge clearance, 15 × 15 mm empty corner squares, 2 mm horizontal/vertical gaps, centred artwork, no quantity question, no plate marks or gripper stripe. `lib/imposition/sticker.ts` compares uniform orientations and mixed row/column bands, checking clearance after centring. This is a bounded shelf search, not a proof of optimal arbitrary packing. Pages below 15 mm² are rejected to bound browser work. Generation remains an explicit click and runs locally. Pamphlet size checks apply after type confirmation; custom-size one-page sticker PDFs must not be rejected by pamphlet preflight.
+
+Visual classification renders the single source page against white, preserving aspect ratio, with a maximum 1280 px side and JPEG quality 0.8 (lowered if needed). Preview data URLs are capped at 1,000,000 characters, and the classification endpoint accepts only JPEG data URLs, never remote image URLs or PDF uploads. Preview failures, ambiguous classifications, incompatible models and API outages preserve manual confirmation. Tests mock OpenAI and never send artwork to the network.

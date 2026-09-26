@@ -4,3 +4,7 @@
 @media(max-width:600px){main{padding:0 16px}.panel{padding:18px}.intro{padding-top:35px}.brand-light{display:none}.local-badge{font-size:9px}dl{grid-template-columns:repeat(2,minmax(0,1fr))}.preview-grid{grid-template-columns:1fr}.generate{align-items:stretch;flex-direction:column}.composer-bottom small{font-size:10px}footer{flex-direction:column;gap:4px}}
 
 .quantity-form{margin-bottom:18px}.quantity-form label{font-size:12px;font-weight:600}.quantity-row{display:flex;gap:10px;margin-top:8px}.quantity-row input{min-width:0;flex:1;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);padding:10px 12px;font:inherit}.quantity-row input:focus-visible{outline:3px solid var(--focus);outline-offset:3px}@media(max-width:420px){.quantity-row{flex-direction:column}}
+
+.ai-suggestion { padding: 14px 16px; border-left: 4px solid var(--accent); border-radius: 6px; background: var(--soft); color: var(--accent); font-size: 16px; font-weight: 700; }
+
+.classification-help { margin: 18px 0 20px; font-weight: 600; line-height: 1.8; }
