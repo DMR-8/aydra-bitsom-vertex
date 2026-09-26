@@ -1,0 +1,37 @@
+{
+  "name": "aydra-offset-book-assistant",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build --webpack",
+    "start": "next start",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "make-test-pdf": "tsx scripts/make-test-pdf.ts"
+  },
+  "dependencies": {
+    "next": "latest",
+    "openai": "latest",
+    "pdf-lib": "1.17.1",
+    "pdfjs-dist": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "zod": "latest"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "latest",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "eslint": "^9",
+    "eslint-config-next": "latest",
+    "tailwindcss": "latest",
+    "tsx": "latest",
+    "typescript": "5.9.3",
+    "vite": "^7",
+    "vitest": "latest"
+  },
+  "type": "module",
+  "packageManager": "yarn@1.22.22"
+}
