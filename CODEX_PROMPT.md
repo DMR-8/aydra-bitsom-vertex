@@ -1,5 +1,7 @@
 # Original scaffold prompt
 
+> The app also supports pamphlets for one- and two-page PDFs. See the later Pamphlet workflow in AGENTS.md; its quantity-only flow supersedes the original book-only restrictions for those inputs.
+
 > The later shop requirements in AGENTS.md supersede this original prompt’s sheet-only and no-marks rules. Output is now 530 × 664 mm plates (664 × 530 landscape), with 45 mm gripper clearance, a 15 mm black stripe, supplied Marka artwork, and gripper labels. See `plateLayout.ts` and `plateSettings.ts` for the implemented deterministic placement.
 
 Paste everything below the line into Codex, run from `/Users/aastik/git/aydra-bitsom`.

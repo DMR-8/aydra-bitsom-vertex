@@ -1,4 +1,4 @@
-import { isSupportedPageSize } from '../../../lib/paper';
+import { isSupportedPageSize, classifyPamphletPaper, isPamphletPageCount } from '../../../lib/paper';
 import OpenAI from 'openai';
 import { zodTextFormat } from 'openai/helpers/zod';
 import { modelSchema, requestSchema } from '../../../lib/assistant/schema';
@@ -12,7 +12,10 @@ export async function POST(request: Request) {
   const parsed = requestSchema.safeParse(raw);
   if (!parsed.success) return Response.json({ error: 'Invalid preflight, state or chat history.' }, { status: 400 });
   const input = parsed.data;
-  if (!input.preflight.uniform || !isSupportedPageSize(input.preflight.pageWidthIn * 72, input.preflight.pageHeightIn * 72)) return Response.json({ error: 'Every page must be A4 portrait: 210 × 297 mm (±5 mm per dimension), with uniform page sizes.' }, { status: 400 });
+  const pamphlet = isPamphletPageCount(input.preflight.pageCount);
+  const width=input.preflight.pageWidthIn*72, height=input.preflight.pageHeightIn*72;
+  const validSize = pamphlet ? !!classifyPamphletPaper(width,height) : isSupportedPageSize(width,height);
+  if (!input.preflight.uniform || !validSize) return Response.json({ error: pamphlet ? 'Pamphlets require uniform A5, half-letter, A4 or Letter pages (±5 mm).' : 'Every page must be A4 portrait: 210 × 297 mm (±5 mm per dimension), with uniform page sizes.' }, { status: 400 });
   if (!process.env.OPENAI_API_KEY || !process.env.OPENAI_MODEL) return Response.json({ error: 'The assistant is not configured. Use the choice buttons to continue.' }, { status: 503 });
   try {
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY, timeout: 25_000, maxRetries: 0 });

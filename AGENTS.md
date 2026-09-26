@@ -1,13 +1,12 @@
-# Aydra Offset Book Assistant
+# Aydra Print Assistant
 
-A single-purpose Next.js web app. An operator uploads a print-ready PDF, sees its
+A Next.js web app for offset books and pamphlets. An operator uploads a print-ready PDF, sees its
 preflight report, and types in plain language what they want ("top bind, title
 lot pot"). An OpenAI model turns that sentence into a job spec, asks for anything
 missing, and the app imposes the PDF as a Center Pin Offset Book on a 4-page
 plate and hands back the imposed PDF with the fixed shop markers and gripper setup.
 
-The app does this one job only. Anything else the operator asks for is politely
-declined.
+One- and two-page PDFs use the pamphlet workflow below. PDFs with three or more pages use the offset-book workflow. Other unrelated tasks are politely declined.
 
 ## Commands
 
@@ -21,7 +20,7 @@ Environment (`.env.local`, never committed; document every key in `.env.example`
 - `OPENAI_API_KEY`: server-side only
 - `OPENAI_MODEL`: the model id to call; never hardcode one in source
 
-## Fixed job rules (do not make these configurable)
+## Fixed offset-book rules (do not make these configurable)
 
 | Setting | Value |
 |---|---|
@@ -35,7 +34,7 @@ Environment (`.env.local`, never committed; document every key in `.env.example`
 | Gripper | 15 mm process-black stripe with white "Aydra Labs Gripper" text along its length; artwork 45 mm from the gripper edge. Portrait front/right, back/left, Lot-Pot/right. Landscape always bottom, including Lot-Pot |
 | Labels | Gripper-01 = front 1, Gripper-02 = back 1, etc. Title Lot-Pot reads "Title LOT-POT" and does not consume a number; the next plate starts Gripper-01. Inner Lot-Pot takes the next number with " Lot-POT" appended (20 pages: Gripper-05 Lot-POT; 28 pages: Gripper-07 Lot-POT). Labels sit in the centre gutter |
 
-## What the operator chooses (in free text)
+## What the book operator chooses (in free text)
 
 1. **Binding edge**: `left`, `right`, `top` or `bottom`. Always required.
 2. **Lot-Pot position**: `title` or `inner`. Only required when the (final) page
@@ -65,8 +64,8 @@ Lot-Pot meanings, for the model's explanations:
 
 ## Architecture rules
 
-- **The model never does imposition.** It only extracts `binding`, `lotPot` and
-  `blankPages` from the conversation and writes the chat reply. Page positions,
+- **The model never does imposition.** It only extracts `quantity` for pamphlets, or `binding`, `lotPot` and
+  `blankPages` for books from the conversation and writes the chat reply. Page positions,
   sheet counts and page lists come only from the deterministic planner.
 - **Deterministic code decides what is missing.** After merging the model's
   extraction, `lib/assistant/jobState.ts` computes the missing fields in the
@@ -155,3 +154,24 @@ Do not show fixed-setting badges (Center Pin, 4-page plate, sheet size, no marks
 The user supplied `Marker Setting - brochure.pdf` as the placement reference. `plateLayout.ts` adds the gripper offset and per-side guides after the original planner determines page order. Portrait marks match the reference: six native-size Marka strips at the outside corners and centre row, plus three centre crosses along the spine. Landscape strips move outside the left/right edges so their 90° rotation clears the row gutter. Labels remain in the centre gutter. The original 20 mm sample stripe is replaced by the requested 15 mm stripe carrying white "Aydra Labs Gripper" lettering; do not copy the sample printer-name artwork. Marker PNGs are for preview only; production PDFs embed the original vector PDFs. The newer marker/plate instructions supersede the original no-marks/press-sheet-only rules.
 
 The UI uses a white background with purple accents at all times. Do not follow the device dark-mode preference or restore an automatic dark theme.
+
+## Pamphlet workflow
+
+- One source page automatically means single-sided pamphlet; two means front/back (page 1 front, page 2 back). Do not add blanks or ask for binding or Lot-Pot. Ask only for the quantity of finished copies. Keep a local numeric entry field so the job can finish without OpenAI.
+- Accept A5 (148 × 210 mm), half-letter (5.5 × 8.5 in), A4, or Letter (8.5 × 11 in), ±5 mm per dimension, either input orientation. Preserve actual dimensions. Mixed page sizes still block generation.
+- Use one 530 × 664 mm portrait output plate, a right gripper, 45 mm artwork clearance, the existing 15 mm stripe and Aydra Labs Gripper lettering, shop Marka assets, and 7.62 mm centre gutter. The page block is centred vertically. Two-page layouts put both faces on the same plate, used with work and tumble; never emit a separate back plate.
+- Deterministic template maps live in `lib/imposition/pamphlet.ts`; measured regression data from the user’s eight-page `Pamphlet Setting.pdf` lives in `tests/fixtures/pamphlet-reference.json`. Do not alter the original book planner.
+- PROVISIONAL quantity cutoffs, disclosed to the user pending clarification: half-size low through 4,000, high from 4,001; full-size low through 2,100, high from 2,101. Page 4 is treated as half-size duplex because its measured rectangles match pages 3 and 4 (the user’s text named full-size). Keep these decisions explicit until confirmed.
+
+| Reference page | Size family | Quantity tier | Source | Positions and turns (portrait-normalized input) |
+|---|---|---|---|---|
+| 1 | A5 / half-letter | Low | 1 page | 2 × 2, all page 1 upright |
+| 2 | A5 / half-letter | Low | 2 pages | 2 × 2, top page 2 at 180°, bottom page 1 upright |
+| 3 | A5 / half-letter | High | 1 page | 2 × 4, all page 1 at 270° |
+| 4 | A5 / half-letter | High | 2 pages | 2 × 4, top half page 2, bottom half page 1; all 270° |
+| 5 | A4 / Letter | Low | 1 page | 1 × 2, all page 1 at 270° |
+| 6 | A4 / Letter | Low | 2 pages | 1 × 2, top page 2, bottom page 1; both 270° |
+| 7 | A4 / Letter | High | 1 page | 2 × 2, all page 1 upright |
+| 8 | A4 / Letter | High | 2 pages | 2 × 2, top page 2 at 180°, bottom page 1 upright |
+
+Only the middle row boundary has a gutter; the other tile edges touch. For landscape source artwork, normalize fronts clockwise and backs counterclockwise so front/back heads agree after work-and-tumble. The output must keep every placement within the plate. Finished pieces per fully printed sheet equal the number of positions; net sheets = ceiling(quantity / positions), and double-sided impressions = twice net sheets. These counts exclude spoilage and setup waste. Quantity changes must re-plan the confirmation card; generation still requires an explicit click. All PDF processing remains in the browser.

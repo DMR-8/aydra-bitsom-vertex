@@ -32,3 +32,22 @@ it('describes the fixed plate and gripper setup to the model and operator',async
   expect(create.mock.calls[0][0].instructions).toContain('Landscape plates always grip at the bottom');
   expect(create.mock.calls[0][0].instructions).toContain('15 mm solid black');
 });
+it('asks quantity only for pamphlets and accepts the extracted quantity',async()=>{
+ const input={...base,preflight:{...base.preflight,pageCount:2,pageWidthIn:5.5,pageHeightIn:8.5},messages:[{role:'user',content:'I need 3000 copies'}]};
+ output({quantity:3000,binding:'left',lotPot:'title',blankPages:'end'});
+ const r=await request(input);expect(r.ready).toBe(true);expect(r.state).toEqual({...emptyState,quantity:3000});expect(r.missing).toEqual([]);
+ expect(create.mock.calls[0][0].instructions).toContain('pamphlet job');
+ output({}, {asking:'binding'});const incomplete=await request(input);
+ expect(incomplete.question.field).toBe('quantity');expect(incomplete.ready).toBe(false);expect(incomplete.reply).toContain('finished copies');
+});
+it('accepts A4/Letter/A5/half-letter pamphlets but refuses unrelated formats',async()=>{
+ for(const [w,h]of [[5.5,8.5],[8.5,5.5],[8.5,11],[210/25.4,297/25.4],[148/25.4,210/25.4]]){
+  output({quantity:1000});expect((await request({...base,preflight:{...base.preflight,pageCount:1,pageWidthIn:w,pageHeightIn:h}})).status).toBe(200);
+ }
+ expect((await request({...base,preflight:{...base.preflight,pageCount:1,pageWidthIn:2,pageHeightIn:2}})).status).toBe(400);
+});
+it('rejects invalid model quantities and keeps the quantity on out-of-scope requests',async()=>{
+ const input={...base,preflight:{...base.preflight,pageCount:1},state:{...emptyState,quantity:1000}};
+ output({quantity:1.5});expect((await request(input)).status).toBe(502);
+ output({quantity:9000},{outOfScope:true});const r=await request(input);expect(r.state.quantity).toBe(1000);expect(r.reply).toContain('pamphlet');
+});

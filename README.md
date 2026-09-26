@@ -1,6 +1,6 @@
-# Aydra Offset Book Assistant
+# Aydra Print Assistant
 
-A single-purpose Next.js app for Center Pin Offset Book imposition. Upload a PDF, describe the binding, review the deterministic plate plan, and explicitly click **Generate imposed PDF** to create a download.
+A Next.js app for Center Pin Offset Book and pamphlet imposition. Upload a PDF, describe the binding, review the deterministic plate plan, and explicitly click **Generate imposed PDF** to create a download.
 
 ## Run locally
 
@@ -26,7 +26,7 @@ yarn build
 yarn start
 ```
 
-## Fixed press setup
+## Fixed book press setup
 
 - Center Pin / saddle stitch; 4-page plate, 8 pages per full sheet, 4 per side.
 - Every input page must be A4 portrait (210 × 297 mm, ±5 mm on each dimension).
@@ -84,3 +84,20 @@ Files are written to the ignored `artifacts/` directory. Use these acceptance ch
 Also check the same flows with no API credentials, using the explicit choice buttons. Browser acceptance and live model behavior need verification in your environment; the automated route tests mock OpenAI.
 
 The marker placement follows the supplied `Marker Setting - brochure.pdf`. The requested 15 mm stripe replaces its wider stripe with white Aydra Labs Gripper lettering. Landscape strips sit outside the left/right page edges so the rotated artwork does not overlap the narrow centre gutter. See `artifacts/plate-proof-left.pdf` and `artifacts/plate-proof-top.pdf` for locally generated proofs (ignored by Git).
+
+## Pamphlet flow
+
+Upload a one-page PDF for single-sided pamphlets or a two-page PDF for front/back pamphlets. The app detects the workflow and asks only for the **finished copy quantity**. Enter it in the local quantity field or chat. No blanks, binding choice, or Lot-Pot question is used. Supported formats are A5, half-letter (8.5 × 5.5 in), A4, and Letter, in either orientation, ±5 mm with uniform page sizes.
+
+The eight layouts follow the user-supplied `Pamphlet Setting.pdf`. All use a 530 × 664 mm portrait plate with a right gripper, 45 mm artwork clearance, 7.62 mm centre gutter, and the existing Marka/gripper artwork. Two-page inputs use one combined front/back plate, printed on both sides with work and tumble.
+
+| Source size | Quantity (provisional) | Single-sided | Front/back |
+|---|---|---|---|
+| A5 / half-letter | 1–4,000 | 4 fronts upright | 2 fronts + 2 backs, heads facing |
+| A5 / half-letter | 4,001+ | 8 fronts, quarter-turned | 4 fronts + 4 backs, same quarter-turn |
+| A4 / Letter | 1–2,100 | 2 fronts, quarter-turned | 1 front + 1 back, same quarter-turn |
+| A4 / Letter | 2,101+ | 4 fronts upright | 2 fronts + 2 backs, heads facing |
+
+The brief overlaps the half-size ranges at 4,001–4,099 and omits exactly 2,100 for full-size. The above boundaries are provisional and are shown on the confirmation card. Reference page 4 is treated as half-size duplex based on its measured page boxes, despite being described as 8.5 × 11 in the text. These three decisions remain open for shop confirmation.
+
+The confirmation shows net press sheets and impressions (excluding spoilage), then requires a Generate click. A double-sided sheet produces the stated finished quantity only after both sides have been printed and cut. Layouts and orientations are deterministic, with rectangle and head-direction tests pinned to the reference. An eight-page rendered proof is available locally at `artifacts/pamphlet-layout-proofs.pdf` (ignored by Git).
