@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import Image from "next/image";
 import { useMemo, useRef, useState } from "react";
 import { preflightPdf, type PreflightResult } from "../lib/preflight/check";
 import {
@@ -30,6 +31,7 @@ export default function Home() {
   const [file, setFile] = useState<File | null>(null);
   const [report, setReport] = useState<PreflightResult | null>(null);
   const [state, setState] = useState<JobState>(emptyState);
+  const [step, setStep] = useState(1);
   const [messages, setMessages] = useState<Message[]>([]);
   const [prompt, setPrompt] = useState("");
   const [quantityInput, setQuantityInput] = useState("");
@@ -49,6 +51,7 @@ export default function Home() {
   }
   function reset() {
     epoch.current++;
+    setStep(1);
     setKind(null);
     setSuggestion("");
     setState(emptyState);
@@ -309,8 +312,7 @@ export default function Home() {
     <main>
       <header>
         <Link className="brand" href="/" aria-label="Aydra home">
-          <span className="brand-icon">a</span> aydra
-          <span className="brand-light"> / print tools</span>
+          <Image src="/logo.svg" alt="" width={24} height={24} /> Aydra Print Pilot
         </Link>
       </header>
       <section className="intro">
@@ -322,9 +324,10 @@ export default function Home() {
           We’ll find the right layout for your next offset run.
         </p>
       </section>
-      <section className="panel">
-        <div className="section-title">
-          <span className="step">01</span>
+      {step === 1 && (
+        <section className="panel">
+          <div className="section-title">
+            <span className="step">01</span>
           <h2>Your print-ready PDF</h2>
         </div>
         <div
@@ -431,11 +434,19 @@ export default function Home() {
                 {n}
               </p>
             ))}
+            {allowed && (
+              <div style={{ marginTop: 20, textAlign: "right" }}>
+                <button onClick={() => setStep(2)}>Continue to Configuration ↗</button>
+              </div>
+            )}
           </div>
         )}
       </section>
+      )}
+      {step === 2 && (
       <section className={`panel ${!allowed ? "waiting" : ""}`}>
         <div className="section-title">
+          <button className="secondary" style={{ padding: "4px 10px", marginRight: 10 }} onClick={() => setStep(1)} aria-label="Back">←</button>
           <span className="step">02</span>
           <h2>
             {count === 1
@@ -611,12 +622,19 @@ export default function Home() {
                 )}
               </>
             )}
+            {plan && (
+              <div style={{ marginTop: 25, paddingTop: 20, borderTop: "1px solid var(--line)", textAlign: "right" }}>
+                <button onClick={() => setStep(3)}>Review Plan ↗</button>
+              </div>
+            )}
           </>
         )}
       </section>
-      {plan && (
+      )}
+      {step === 3 && plan && (
         <section className="panel confirmation">
           <div className="section-title">
+            <button className="secondary" style={{ padding: "4px 10px", marginRight: 10 }} onClick={() => setStep(2)} aria-label="Back">←</button>
             <span className="step">03</span>
             <h2>Review your press plan</h2>
             <span className="status-good">Ready for review</span>
@@ -722,7 +740,7 @@ export default function Home() {
         </p>
       )}
       <footer>
-        <span>AYDRA PRINT ASSISTANT</span>
+        <span>AYDRA PRINT PILOT</span>
         <span>Books, pamphlets and stickers, prepared for press.</span>
       </footer>
     </main>
