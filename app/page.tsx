@@ -290,6 +290,10 @@ export default function Home() {
           ),
         );
         assets = { corner, centre };
+      } else {
+        const response = await fetch("/marks/Sticker-Marka.pdf");
+        if (!response.ok) throw new Error("Unable to load the sticker markers.");
+        assets = { sticker: new Uint8Array(await response.arrayBuffer()) };
       }
       const output = await generateImposedPdf(bytes, plan, assets);
       const url = URL.createObjectURL(
@@ -314,6 +318,21 @@ export default function Home() {
         <Link className="brand" href="/" aria-label="Aydra home">
           <Image src="/logo.svg" alt="" width={24} height={24} /> Aydra Print Pilot
         </Link>
+        {(step === 2 || step === 3) && (
+          <button
+            type="button"
+            className="secondary new-job"
+            disabled={!!busy}
+            onClick={() => {
+              reset();
+              setFile(null);
+              setReport(null);
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+          >
+            + New job
+          </button>
+        )}
       </header>
       <section className="intro">
         <p className="eyebrow">PREPRESS, SIMPLIFIED</p>
@@ -696,7 +715,7 @@ export default function Home() {
           ))}
           <p className="muted">
             {sticker ? (
-              "Labels use their PDF page boundary at actual size. The layout compares uniform and mixed rows and columns; reserved corners remain empty."
+              "Labels use their PDF page boundary at actual size. The layout compares uniform and mixed rows and columns; the supplied corner markers occupy the reserved areas."
             ) : (
               <>
                 Dashed layout guides are preview-only. The PDF includes the

@@ -43,6 +43,8 @@ export interface BookSpreadRegion {
 }
 
 export interface PlannedSheet {
+  /** Native 13 × 19 inch sticker corner-marker overlay. */
+  stickerMarks?: boolean;
   /** Shop plate artwork; absent on the unchanged reference planner output. */
   plate?: PlateSetup;
   guides?: { x: number[]; y: number[] };

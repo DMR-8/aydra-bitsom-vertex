@@ -5,8 +5,9 @@ export function SheetPreview({ plan }: { plan: ImpositionPlan }) {
     <figcaption>{sheet.label}{sheet.lotPot ? ' · Work & tumble' : ''}{sheet.plate ? ` · ${sheet.plate.label}` : ''}</figcaption>
     <svg role="img" aria-label={`${sheet.label}: pages ${sheet.slots.map(s => s.page).join(', ')}`} viewBox={`0 0 ${plan.sheetWidthMm} ${plan.sheetHeightMm}`}>
       <rect width={plan.sheetWidthMm} height={plan.sheetHeightMm} fill="#ffffff" />
+      {sheet.stickerMarks && <image href="/marks/Sticker-Marka.png" x="0" y="0" width={plan.sheetWidthMm} height={plan.sheetHeightMm} />}
       {plan.marginMm != null && <rect x={plan.marginMm} y={plan.marginMm} width={plan.sheetWidthMm-2*plan.marginMm} height={plan.sheetHeightMm-2*plan.marginMm} fill="none" stroke="#a78bfa" strokeDasharray="3 3" />}
-      {plan.cornerMm != null && [0,1,2,3].map(i=><rect key={`corner-${i}`} x={i%2 ? plan.sheetWidthMm-plan.cornerMm! : 0} y={i>1 ? plan.sheetHeightMm-plan.cornerMm! : 0} width={plan.cornerMm} height={plan.cornerMm} fill="#f3e8ff" />)}
+      {plan.cornerMm != null && [0,1,2,3].map(i=><rect key={`corner-${i}`} x={i%2 ? plan.sheetWidthMm-plan.cornerMm! : 0} y={i>1 ? plan.sheetHeightMm-plan.cornerMm! : 0} width={plan.cornerMm} height={plan.cornerMm} fill="#f3e8ff" fillOpacity="0.35" />)}
       {sheet.plate && <rect x={sheet.plate.gripper === 'right' ? plan.sheetWidthMm-sheet.plate.stripeWidth : 0} y={sheet.plate.gripper === 'bottom' ? plan.sheetHeightMm-sheet.plate.stripeWidth : 0} width={sheet.plate.gripper === 'bottom' ? plan.sheetWidthMm : sheet.plate.stripeWidth} height={sheet.plate.gripper === 'bottom' ? sheet.plate.stripeWidth : plan.sheetHeightMm} fill="#000" />}
       {sheet.slots.map((slot, i) => <g key={i}>
         <rect x={slot.x} y={slot.y} width={slot.width} height={slot.height} fill={slot.rotation ? '#ede9fe' : '#f5f3ff'} stroke="#a78bfa" strokeWidth="1" />

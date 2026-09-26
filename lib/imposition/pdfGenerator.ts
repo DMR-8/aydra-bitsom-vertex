@@ -13,7 +13,7 @@ const POINTS_PER_MM = 72 / 25.4;
  * flipped on the way in. Rotation changes the drawing origin and, for quarter
  * turns, swaps the unrotated dimensions so the content stays inside its slot.
  */
-export interface MarkerAssets { corner: Uint8Array; centre: Uint8Array }
+export interface MarkerAssets { corner?: Uint8Array; centre?: Uint8Array; sticker?: Uint8Array }
 export async function generateImposedPdf(sourceBytes: Uint8Array, plan: ImpositionPlan, markerAssets?: MarkerAssets): Promise<Uint8Array> {
   if (plan.error) throw new Error(plan.error);
   if (plan.sheets.length === 0) throw new Error("The plan has no sheets to write.");
@@ -31,11 +31,21 @@ export async function generateImposedPdf(sourceBytes: Uint8Array, plan: Impositi
   const embedded = await output.embedPages(source.getPages());
 
   const hasShopMarks = plan.sheets.some(sheet => sheet.plate);
-  if (hasShopMarks && !markerAssets) throw new Error("The shop's Marka PDFs are required to write the plate marks.");
-  const markerForms = hasShopMarks && markerAssets ? {
+  if (hasShopMarks && (!markerAssets?.corner || !markerAssets?.centre)) throw new Error("The shop's Marka PDFs are required to write the plate marks.");
+  const markerForms = hasShopMarks && markerAssets?.corner && markerAssets?.centre ? {
     corner: (await output.embedPdf(markerAssets.corner, [0]))[0],
     centre: (await output.embedPdf(markerAssets.centre, [0]))[0],
   } : null;
+  const hasStickerMarks = plan.sheets.some(sheet => sheet.stickerMarks);
+  if (hasStickerMarks && !markerAssets?.sticker) throw new Error("The sticker Marka PDF is required.");
+  let stickerForm;
+  if (hasStickerMarks && markerAssets?.sticker) {
+    const markerDoc = await PDFDocument.load(markerAssets.sticker);
+    const markerPage = markerDoc.getPage(0);
+    if (markerDoc.getPageCount() !== 1 || Math.abs(markerPage.getWidth()-936)>0.01 || Math.abs(markerPage.getHeight()-1368)>0.01 || Math.abs(plan.sheetWidthMm-330.2)>0.01 || Math.abs(plan.sheetHeightMm-482.6)>0.01)
+      throw new Error("Sticker markers require the native 13 × 19 inch sheet.");
+    stickerForm = await output.embedPage(markerPage);
+  }
   const labelFont = hasShopMarks ? await output.embedFont(StandardFonts.Helvetica) : null;
   const gripperFont = hasShopMarks ? await output.embedFont(StandardFonts.HelveticaBold) : null;
   const sheetWidthPt = plan.sheetWidthMm * POINTS_PER_MM;
@@ -114,6 +124,9 @@ export async function generateImposedPdf(sourceBytes: Uint8Array, plan: Impositi
         size:fontSize,font:labelFont,color:cmyk(0,0,0,1),rotate:degrees(setup.rotation),
       });
     }
+
+    // Preserve all four corner positions, strokes and colours from the supplied PDF.
+    if (sheet.stickerMarks && stickerForm) page.drawPage(stickerForm, { x: 0, y: 0 });
 
     // Marks go on last, over any bleed that reaches into the margin.
     const marks = sheet.marks ?? plan.marks;

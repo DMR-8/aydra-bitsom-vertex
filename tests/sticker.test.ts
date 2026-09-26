@@ -1,3 +1,4 @@
+import {readFile} from 'node:fs/promises';
 import {expect,it} from 'vitest';
 import {PDFDocument} from 'pdf-lib';
 import {planSticker} from '../lib/imposition/sticker';
@@ -25,9 +26,14 @@ it('finds a mixed arrangement exceeding both uniform grids',()=>{
  expect(slots.length).toBeGreaterThan(Math.max(fit(89,51),fit(51,89)));
  expect(new Set(slots.map(s=>s.rotation)).size).toBe(2);
 });
-it('rejects invalid and oversized items and exports a single correctly sized sheet without marker assets',async()=>{
+it('rejects invalid and oversized items and exports a single correctly sized sheet with native vector corner markers',async()=>{
  expect(planSticker(size(600,600)).error).toBeTruthy();expect(planSticker(size(0,30)).error).toBeTruthy();
  const source=await PDFDocument.create();source.addPage([89*72/25.4,51*72/25.4]);
- const out=await PDFDocument.load(await generateImposedPdf(await source.save(),planSticker(size(89,51))));
+ const plan=planSticker(size(89,51));
+ const sticker=new Uint8Array(await readFile('public/marks/Sticker-Marka.pdf'));
+ expect(plan.sheets[0].stickerMarks).toBe(true);
+ await expect(generateImposedPdf(await source.save(),plan)).rejects.toThrow('sticker Marka');
+ const out=await PDFDocument.load(await generateImposedPdf(await source.save(),plan,{sticker}));
+ await expect(generateImposedPdf(await source.save(),{...plan,sheetWidthMm:350},{sticker})).rejects.toThrow('native 13 × 19');
  expect(out.getPageCount()).toBe(1);expect(out.getPage(0).getWidth()).toBeCloseTo(13*72);expect(out.getPage(0).getHeight()).toBeCloseTo(19*72);
 });

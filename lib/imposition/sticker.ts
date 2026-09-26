@@ -43,7 +43,7 @@ export function planSticker(size: PageSize): ImpositionPlan {
     }
   }
   plan.error=best.length?null:'This sticker does not fit the sheet with the fixed margins and corner clearance.';
-  plan.sheets=best.length?[{label:'Labels / Stickers',side:'front',slots:best}]:[];
+  plan.sheets=best.length?[{label:'Labels / Stickers',side:'front',stickerMarks:true,slots:best}]:[];
   plan.summary=`${best.length} stickers per 13 × 19 inch sheet · ${new Set(best.map(s=>s.rotation)).size>1?'Mixed orientations':'Uniform orientation'} · actual source size.`;
   return plan;
 }
