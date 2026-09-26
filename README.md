@@ -32,7 +32,7 @@ yarn start
 - Every input page must be A4 portrait (210 × 297 mm, ±5 mm on each dimension).
 - Left/right: 530 × 664 mm portrait plates. Top/bottom: 664 × 530 mm landscape plates.
 - Head-to-head gutter: 0.3 in. One signature per plate, positioned 45 mm from the gripper edge.
-- Six native-size Marka strips and three centre marks, using the supplied vector PDFs, plus a 15 mm solid process-black gripper stripe. Preview fold lines are never printed.
+- Six native-size Marka strips and three centre marks, using the supplied vector PDFs, plus a 15 mm process-black gripper stripe with white **Aydra Labs Gripper** lettering along its length. Preview fold lines are never printed.
 - Portrait fronts and Title/Inner Lot-Pots grip right; portrait backs grip left. Landscape plates always grip at the bottom. Marker artwork rotates to follow the gripper.
 - Centre-gutter labels: Gripper-01 is front 1, Gripper-02 is back 1, then 03/04, etc. A Title Lot-Pot reads **Title LOT-POT** and the following plate starts at Gripper-01. An Inner Lot-Pot continues the sequence: **Gripper-05 Lot-POT** for 20 pages, **Gripper-07 Lot-POT** for 28 pages.
 - No Normal Bind, N-up, Mix n Match, alternative sheets, or CMYK conversion.
@@ -83,4 +83,4 @@ Files are written to the ignored `artifacts/` directory. Use these acceptance ch
 
 Also check the same flows with no API credentials, using the explicit choice buttons. Browser acceptance and live model behavior need verification in your environment; the automated route tests mock OpenAI.
 
-The marker placement follows the supplied `Marker Setting - brochure.pdf`. The requested 15 mm stripe replaces its wider stripe without printer-name lettering. Landscape strips sit outside the left/right page edges so the rotated artwork does not overlap the narrow centre gutter. See `artifacts/plate-proof-left.pdf` and `artifacts/plate-proof-top.pdf` for locally generated proofs (ignored by Git).
+The marker placement follows the supplied `Marker Setting - brochure.pdf`. The requested 15 mm stripe replaces its wider stripe with white Aydra Labs Gripper lettering. Landscape strips sit outside the left/right page edges so the rotated artwork does not overlap the narrow centre gutter. See `artifacts/plate-proof-left.pdf` and `artifacts/plate-proof-top.pdf` for locally generated proofs (ignored by Git).

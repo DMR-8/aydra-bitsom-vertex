@@ -32,7 +32,7 @@ Environment (`.env.local`, never committed; document every key in `.env.example`
 | Gutter | 0.3 in (7.62 mm), head to head between the two rows |
 | Shop markers | Embed `public/marks/Marka.pdf` and `Marka-Centre.pdf`: six strips and three centre marks, rotated for the gripper. No additional generic cutting/registration marks |
 | N-up / Mix n Match | Off: one signature positioned relative to the gripper per plate |
-| Gripper | 15 mm solid process-black stripe; artwork 45 mm from the gripper edge. Portrait front/right, back/left, Lot-Pot/right. Landscape always bottom, including Lot-Pot |
+| Gripper | 15 mm process-black stripe with white "Aydra Labs Gripper" text along its length; artwork 45 mm from the gripper edge. Portrait front/right, back/left, Lot-Pot/right. Landscape always bottom, including Lot-Pot |
 | Labels | Gripper-01 = front 1, Gripper-02 = back 1, etc. Title Lot-Pot reads "Title LOT-POT" and does not consume a number; the next plate starts Gripper-01. Inner Lot-Pot takes the next number with " Lot-POT" appended (20 pages: Gripper-05 Lot-POT; 28 pages: Gripper-07 Lot-POT). Labels sit in the centre gutter |
 
 ## What the operator chooses (in free text)
@@ -152,6 +152,6 @@ Do not show fixed-setting badges (Center Pin, 4-page plate, sheet size, no marks
 
 ## Shop marker reference
 
-The user supplied `Marker Setting - brochure.pdf` as the placement reference. `plateLayout.ts` adds the gripper offset and per-side guides after the original planner determines page order. Portrait marks match the reference: six native-size Marka strips at the outside corners and centre row, plus three centre crosses along the spine. Landscape strips move outside the left/right edges so their 90° rotation clears the row gutter. Labels remain in the centre gutter. The original 20 mm sample stripe is replaced by the requested solid 15 mm stripe; do not copy the printer-name artwork. Marker PNGs are for preview only; production PDFs embed the original vector PDFs. The newer marker/plate instructions supersede the original no-marks/press-sheet-only rules.
+The user supplied `Marker Setting - brochure.pdf` as the placement reference. `plateLayout.ts` adds the gripper offset and per-side guides after the original planner determines page order. Portrait marks match the reference: six native-size Marka strips at the outside corners and centre row, plus three centre crosses along the spine. Landscape strips move outside the left/right edges so their 90° rotation clears the row gutter. Labels remain in the centre gutter. The original 20 mm sample stripe is replaced by the requested 15 mm stripe carrying white "Aydra Labs Gripper" lettering; do not copy the sample printer-name artwork. Marker PNGs are for preview only; production PDFs embed the original vector PDFs. The newer marker/plate instructions supersede the original no-marks/press-sheet-only rules.
 
 The UI uses a white background with purple accents at all times. Do not follow the device dark-mode preference or restore an automatic dark theme.

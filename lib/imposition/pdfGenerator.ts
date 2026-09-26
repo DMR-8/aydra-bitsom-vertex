@@ -1,3 +1,4 @@
+import { gripperText } from './gripperText';
 import { PDFDocument, degrees, rgb, cmyk, StandardFonts, pushGraphicsState, popGraphicsState } from "pdf-lib";
 import type { ImpositionPlan } from "./layout";
 
@@ -36,6 +37,7 @@ export async function generateImposedPdf(sourceBytes: Uint8Array, plan: Impositi
     centre: (await output.embedPdf(markerAssets.centre, [0]))[0],
   } : null;
   const labelFont = hasShopMarks ? await output.embedFont(StandardFonts.Helvetica) : null;
+  const gripperFont = hasShopMarks ? await output.embedFont(StandardFonts.HelveticaBold) : null;
   const sheetWidthPt = plan.sheetWidthMm * POINTS_PER_MM;
   const sheetHeightPt = plan.sheetHeightMm * POINTS_PER_MM;
   const black = rgb(0, 0, 0);
@@ -67,16 +69,29 @@ export async function generateImposedPdf(sourceBytes: Uint8Array, plan: Impositi
       }
     }
 
-    if (sheet.plate && markerForms && labelFont) {
+    if (sheet.plate && markerForms && labelFont && gripperFont) {
       const setup = sheet.plate;
       const stripe = setup.stripeWidth * POINTS_PER_MM;
-      // Solid process black (K only), with no shop-name artwork in the stripe.
+      // Process-black stripe with white lettering running along its length.
       page.drawRectangle({
         x: setup.gripper === 'right' ? sheetWidthPt-stripe : 0,
         y: 0,
         width: setup.gripper === 'bottom' ? sheetWidthPt : stripe,
         height: setup.gripper === 'bottom' ? stripe : sheetHeightPt,
         color: cmyk(0,0,0,1),
+      });
+      const stripeText = gripperText(setup, plan.sheetWidthMm, plan.sheetHeightMm);
+      const textCentre = toPt(stripeText.x, stripeText.y);
+      const textWidth = gripperFont.widthOfTextAtSize(stripeText.text, stripeText.fontSizePt);
+      const ascent = gripperFont.heightAtSize(stripeText.fontSizePt, { descender: false });
+      const fullHeight = gripperFont.heightAtSize(stripeText.fontSizePt);
+      const baselineOffset = ascent - fullHeight/2;
+      const angle = -stripeText.rotation*Math.PI/180;
+      page.drawText(stripeText.text, {
+        x: textCentre.x-textWidth/2*Math.cos(angle)+baselineOffset*Math.sin(angle),
+        y: textCentre.y-textWidth/2*Math.sin(angle)-baselineOffset*Math.cos(angle),
+        font: gripperFont, size: stripeText.fontSizePt, color: cmyk(0,0,0,0),
+        rotate: degrees(-stripeText.rotation),
       });
       for (const marker of setup.markers) {
         const form = markerForms[marker.asset];

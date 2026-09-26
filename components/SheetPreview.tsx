@@ -1,3 +1,4 @@
+import { gripperText } from '../lib/imposition/gripperText';
 import type { ImpositionPlan } from '../lib/imposition/layout';
 export function SheetPreview({ plan }: { plan: ImpositionPlan }) {
   return <div className="preview-grid">{plan.sheets.map((sheet, index) => <figure key={index}>
@@ -16,6 +17,10 @@ export function SheetPreview({ plan }: { plan: ImpositionPlan }) {
         <image href={marker.asset === 'corner' ? '/marks/Marka.png' : '/marks/Marka-Centre.png'} x={-(marker.rotation===90 ? marker.height : marker.width)/2} y={-(marker.rotation===90 ? marker.width : marker.height)/2} width={marker.rotation===90 ? marker.height : marker.width} height={marker.rotation===90 ? marker.width : marker.height} />
       </g>)}
       {sheet.plate && <text x={sheet.plate.labelX} y={sheet.plate.labelY} textAnchor="middle" dominantBaseline="middle" fontSize={8*25.4/72} fill="#000" transform={`rotate(${sheet.plate.rotation} ${sheet.plate.labelX} ${sheet.plate.labelY})`}>{sheet.plate.label}</text>}
+      {sheet.plate && (() => {
+        const text = gripperText(sheet.plate, plan.sheetWidthMm, plan.sheetHeightMm);
+        return <text x={text.x} y={text.y} textAnchor="middle" dominantBaseline="central" fontFamily="Helvetica, Arial, sans-serif" fontWeight="bold" fontSize={text.fontSizePt*25.4/72} fill="#fff" transform={`rotate(${text.rotation} ${text.x} ${text.y})`}>{text.text}</text>;
+      })()}
     </svg>
   </figure>)}</div>;
 }
